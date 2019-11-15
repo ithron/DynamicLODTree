@@ -1,7 +1,7 @@
 import XCTest
 
-import DynamicLODTree2DTests
+import DynamicLODTreeTests
 
 var tests = [XCTestCaseEntry]()
-tests += DynamicLODTree2DTests.allTests()
+tests += DynamicLODTreeTests.allTests()
 XCTMain(tests)
