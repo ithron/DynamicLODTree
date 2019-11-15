@@ -1,0 +1,28 @@
+env:
+  global:
+    - SWIFT_BRANCH="swift-5.1.1-release"
+    - SWIFT_VERSION="swift-5.1.1-RELEASE"
+
+matrix:
+  include:
+    - os: osx
+      osx_image: xcode11.2
+      language: swift
+      script:
+        - swift package update
+        - swift package generate-xcodeproj
+        - xcodebuild test -scheme DynamicLODTree-Package -destination "platform=macOS" -enableCodeCoverage YES -derivedDataPath .build/derivedData
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) -D .build/derivedData
+  
+    - os: linux
+      dist: bionic
+      language: generic
+      install:
+        - mkdir swift
+        - curl https://swift.org/builds/${SWIFT_BRANCH}/ubuntu1804/${SWIFT_VERSION}/${SWIFT_VERSION}-ubuntu18.04.tar.gz | tar xz -C swift &> /dev/null
+        - export PATH="$(pwd)/swift/${SWIFT_VERSION}-ubuntu18.04/usr/bin:${PATH}"
+      script:
+        - swift --version
+        - swift package update
+        - swift test
