@@ -26,10 +26,9 @@
 
 import DynamicLODTree
 import XCTest
-import simd
 
 class DynamicLODTreeTests: XCTestCase {
-  typealias Position = simd_int2
+  typealias Position = SIMD2<Int32>
   typealias Tree = DynamicLODTree<Int, Position>
   
   override func setUp() {
