@@ -245,4 +245,49 @@ class DynamicLODTreeTests: XCTestCase {
       XCTAssertTrue(node.isLeaf)
     }
   }
+  
+  func testIfRootNodeIsIsolated() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
+    tree.rootNode.subdivide()
+    
+    XCTAssertNil(tree.rootNode.nextNeighbor)
+  }
+  
+  func testIfSisterNodesAreNeighbors() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
+    tree.rootNode.subdivide()
+    
+    var node = tree.rootNode.children!.first
+    
+    XCTAssertTrue(node.nextNeighbor === node.next())
+    node = node.next()!
+    XCTAssertTrue(node.nextNeighbor === node.next())
+    node = node.next()!
+    XCTAssertTrue(node.nextNeighbor === node.next())
+    node = node.next()!
+    XCTAssertNil(node.nextNeighbor)
+  }
+  
+  func testIfCanFindNeighborAtHigherDepth() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.first.subdivide()
+    
+    let leaf = tree.nodes.first(where: { $0.isLeaf })!.next()!.next()!.next()!
+    let neighbor = tree.rootNode.children!.bottomRight
+    
+    XCTAssertTrue(leaf.nextNeighbor === neighbor)
+  }
+  
+  func testIfCanFindNeighborAtEqualDepth() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.first.subdivide()
+    tree.rootNode.children!.bottomRight.subdivide()
+    
+    let leaf = tree.nodes.first(where: { $0.isLeaf })!.next()!.next()!.next()!
+    let neighbor = tree.rootNode.children!.bottomRight.children!.first
+    
+    XCTAssertTrue(leaf.nextNeighbor === neighbor)
+  }
 }
