@@ -363,4 +363,17 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertTrue(tree.fit(to: circle))
     XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
   }
+  
+  func testIfGrowToContainCircleDoesReclaimNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
+    let circle = (origin: Position.zero, radius: Int32(1))
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.bottomLeft.prune()
+    
+    XCTAssertTrue(tree.grow(toContainCircle: circle))
+    
+    for node in tree.nodes {
+      XCTAssertFalse(node.isVolatile)
+    }
+  }
 }
