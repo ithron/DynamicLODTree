@@ -54,6 +54,38 @@ public extension DynamicLODTree {
     points.forEach { self.grow(toContainPoint: $0) }
     return true
   }
+  func prune(outsideOf circle: (origin: Position, radius: Scalar)) -> Bool {
+    let squaredRadius = circle.radius * circle.radius
+    
+    var modified = false
+    
+    // Remove all nodes that are completely outside the circle
+    var node = rootNode
+    var nextNode: NodeType? = node
+    
+    while nextNode != nil {
+      node = nextNode!
+      let maxPoint = node.origin &+ node.size
+      let nearestPoint = circle.origin.clamped(lowerBound: node.origin,
+                                               upperBound: maxPoint)
+      let delta = circle.origin &- nearestPoint
+      let squaredLength = Position.dot(delta, delta)
+      
+      if squaredLength > squaredRadius {
+        node.prune()
+        modified = true
+        if let nextNeighbor = node.nextNeighbor {
+          nextNode = nextNeighbor
+        } else {
+          return modified
+        }
+      } else {
+        nextNode = node.next()
+      }
+    }
+    
+    return modified
+  }
 }
 
 extension DynamicLODTree.DiagonalDirection {

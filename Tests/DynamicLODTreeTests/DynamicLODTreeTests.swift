@@ -290,4 +290,43 @@ class DynamicLODTreeTests: XCTestCase {
     
     XCTAssertTrue(leaf.nextNeighbor === neighbor)
   }
+  
+  func testIfPruneOutsideOfCircleDoesNotPruneSingleNode() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 3)
+    
+    let circle = (origin: tree.origin &+ tree.rootNode.stride,
+                  radius: Int32(1))
+    
+    let modified = tree.prune(outsideOf: circle)
+    
+    XCTAssertFalse(tree.rootNode.isVolatile)
+    XCTAssertFalse(modified)
+  }
+  
+  func testIfPruneOutsideOfCircleDoesNotPruneNodesInside() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.nodes.forEach { $0.subdivide() }
+    
+    let circle = (origin: Position(2, 2), radius: Int32(2))
+    
+    let modified = tree.prune(outsideOf: circle)
+    
+    XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
+    XCTAssertFalse(modified)
+  }
+  
+  func testIfPruneOutsideOfCirclePrunesNodesOutside() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    
+    let circle = (origin: Position.zero, radius: Int32(1))
+    
+    let modified = tree.prune(outsideOf: circle)
+    
+    XCTAssertFalse(tree.rootNode.children!.bottomLeft.isVolatile)
+    XCTAssertTrue(tree.rootNode.children!.bottomRight.isVolatile)
+    XCTAssertTrue(tree.rootNode.children!.topLeft.isVolatile)
+    XCTAssertTrue(tree.rootNode.children!.topRight.isVolatile)
+    XCTAssertTrue(modified)
+  }
 }
