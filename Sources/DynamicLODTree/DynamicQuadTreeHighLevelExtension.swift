@@ -54,6 +54,7 @@ public extension DynamicLODTree {
     points.forEach { self.grow(toContainPoint: $0) }
     return true
   }
+  
   func prune(outsideOf circle: (origin: Position, radius: Scalar)) -> Bool {
     let squaredRadius = circle.radius * circle.radius
     
@@ -85,6 +86,14 @@ public extension DynamicLODTree {
     }
     
     return modified
+  }
+  
+  func fit(to circle: (origin: Position, radius: Scalar)) -> Bool {
+    // Ensure the circle is contained in the tree
+    let grown = grow(toContainCircle: circle)
+    // Prune all nodes outside the circle
+    let pruned = prune(outsideOf: circle)
+    return grown || pruned
   }
 }
 
