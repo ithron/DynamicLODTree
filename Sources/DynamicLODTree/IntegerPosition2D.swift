@@ -25,56 +25,58 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /// An integer 2D position type
-public protocol IntegerPosition2D : AdditiveOverflowArithmetic {
-  
+public protocol IntegerPosition2D: AdditiveOverflowArithmetic {
   /// The underlying scalar type
-  associatedtype Scalar : SignedInteger
+  associatedtype Scalar: SignedInteger
   
   /// Access x component
-  var x : Scalar {get set}
+  var x: Scalar { get set }
   /// Access y component
-  var y : Scalar {get set}
+  var y: Scalar { get set }
   
   /// initializable from x and y components without label
-  init(_ x : Scalar, _ y : Scalar)
+  init(_ x: Scalar, _ y: Scalar)
   
   /// Vector scalar multiplication
-  static func &*(_ pos : Self, _ scalar : Scalar) -> Self
+  static func &*(_ pos: Self, _ scalar: Scalar) -> Self
   /// Scalar vector multiplication
-  static func &*(_ scalar : Scalar, _ pos : Self) -> Self
+  static func &*(_ scalar: Scalar, _ pos: Self) -> Self
   
   /// Vector by scalar division
-  static func /(_ pos : Self, _ scalar : Scalar) -> Self
+  static func /(_ pos: Self, _ scalar: Scalar) -> Self
   
   /// Broadcasting addition
-  static func &+(_ pos : Self, _ scalar : Scalar) -> Self
-  static func &+(_ scalar : Scalar, pos : Self) -> Self
+  static func &+(_ pos: Self, _ scalar: Scalar) -> Self
+  static func &+(_ scalar: Scalar, pos: Self) -> Self
   
   /// Broadcasting subtraction
-  static func &-(_ pos : Self, _ scalar : Scalar) -> Self
-  
+  static func &-(_ pos: Self, _ scalar: Scalar) -> Self
 }
 
 /// A type that is initializable given an x and a y component using labels
 public protocol XYInitializable {
   associatedtype Scalar
   
-  init(x : Scalar, y : Scalar)
+  init(x: Scalar, y: Scalar)
 }
 
 /// Adds compatibility for types that use x and y labels in initializer
-public extension IntegerPosition2D where Self : XYInitializable {
-}
+public extension IntegerPosition2D where Self: XYInitializable {}
 
 public extension IntegerPosition2D {
-  
   static func min(_ lhs: Self, _ rhs: Self) -> Self {
-    return Self.init(Swift.min(lhs.x, rhs.x), Swift.min(lhs.y, rhs.y))
+    return Self(Swift.min(lhs.x, rhs.x), Swift.min(lhs.y, rhs.y))
   }
-  
   
   static func max(_ lhs: Self, _ rhs: Self) -> Self {
-    return Self.init(Swift.max(lhs.x, rhs.x), Swift.max(lhs.y, rhs.y))
+    return Self(Swift.max(lhs.x, rhs.x), Swift.max(lhs.y, rhs.y))
   }
   
+  static func dot(_ lhs: Self, _ rhs: Self) -> Scalar {
+    return lhs.x * rhs.x + lhs.y * rhs.y
+  }
+  
+  func clamped(lowerBound: Self, upperBound: Self) -> Self {
+    return .min(.max(lowerBound, self), upperBound)
+  }
 }
