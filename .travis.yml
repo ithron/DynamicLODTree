@@ -25,4 +25,4 @@ matrix:
       script:
         - swift --version
         - swift package update
-        - swift test
+        - swift build
