@@ -186,6 +186,20 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     parent?.reclaim()
   }
   
+  /// Marks a single node as non-volatile
+  ///
+  /// Has no effect on non-volatile nodes.
+  /// Does not reclaim any child nodes.
+  /// Reclaims the parent node
+  /// - Postcondition:self.isVolatile == false
+  public func reclaimNonRecursive() {
+    guard isVolatile else { return }
+    isVolatile = false
+
+    // reclaim parent
+    parent?.reclaim()
+  }
+  
   /// Removes the node and its sub nodes from the tree
   ///
   /// The node is not directly removed from the tree, but marked as volatile instead.
