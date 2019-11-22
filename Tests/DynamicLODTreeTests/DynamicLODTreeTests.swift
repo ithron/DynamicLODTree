@@ -376,4 +376,32 @@ class DynamicLODTreeTests: XCTestCase {
       XCTAssertFalse(node.isVolatile)
     }
   }
+  
+  func testIfNodeIntersectsIntersectingDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    XCTAssertTrue(tree.rootNode.intersects(disk))
+  }
+  
+  func testIfNodeDoesNotIntersectDisjointDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position(-3, 4), radius: Int32(1))
+    
+    XCTAssertFalse(tree.rootNode.intersects(disk))
+  }
+  
+  func testIfNodeIsNotIncludedInPartiallyOverlappingDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    XCTAssertFalse(tree.rootNode.isIncluded(in: disk))
+  }
+  
+  func testIfNodeIsIncludedInItsBoundingDisk() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
+    let disk = (origin: Position(1, 1), radius: Int32(2))
+    
+    XCTAssertTrue(tree.rootNode.isIncluded(in: disk))
+  }
 }
