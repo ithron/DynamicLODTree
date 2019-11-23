@@ -95,7 +95,7 @@ extension Node {
         return n
       } else if n.isIncluded(in: disk) {
         // node is completly included in circle, can skip to next neighbor
-        node = n.nextNeighbor
+        node = n.nextBranch()
       } else {
         // the node and the disk intersects but node is no subset of disk,
         // therefore, there might be a child that does not intersect with disk
@@ -103,6 +103,9 @@ extension Node {
       }
     }
     
+    // If no node was found until here, there is no node left
+    return nil
+  }
     // If no node was found until here, there is no node left
     return nil
   }

@@ -431,7 +431,7 @@ class DynamicLODTreeTests: XCTestCase {
        tree.rootNode.children!.bottomRight.children!.topRight,
        tree.rootNode.children!.bottomRight.children!.bottomRight] +
       [tree.rootNode.children!.topLeft.children!.topLeft,
-        tree.rootNode.children!.topLeft.children!.topRight,
+       tree.rootNode.children!.topLeft.children!.topRight,
        tree.rootNode.children!.topLeft.children!.bottomRight] +
       tree.rootNode.children!.topRight.children!
     
@@ -451,6 +451,28 @@ class DynamicLODTreeTests: XCTestCase {
       }
     })
     
+    // check if all refNodes are included in visitedNodes
+    XCTAssertTrue(refNodes.allSatisfy { ni in
+      nodesVisited.contains {
+        nj in
+        ni === nj
+      }
+    })
+  }
+  
+  func testIfNextIntersectingNodesIntersectDisk() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    var node: Tree.NodeType? = tree.rootNode.nextIntersecting(disk)
+    while let n = node {
+      XCTAssertTrue(n.intersects(disk))
+      node = n.nextIntersecting(disk)
+    }
+  }
     // check if all refNodes are included in visitedNodes
     XCTAssertTrue(refNodes.allSatisfy { ni in
       nodesVisited.contains {
