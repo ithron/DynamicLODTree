@@ -106,6 +106,24 @@ extension Node {
     // If no node was found until here, there is no node left
     return nil
   }
+  
+  /// Returns the next node that intersects the given disk or nil if there are no more intersecrting nodes
+  ///
+  /// - Parameter disk: `(origin: PositionType, radius: Scalar)` disk to check for
+  ///  intersection with
+  /// - Postcondition: `let n = nextIntersecting(disk)` then
+  /// `n.intersects(disk) == true`
+  public func nextIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+    var node = next()
+    while let n = node {
+      if n.intersects(disk) {
+        return n
+      } else {
+        // if n does not intersect disk, none of the children of n intersects
+        node = n.nextBranch()
+      }
+    }
+    
     // If no node was found until here, there is no node left
     return nil
   }
