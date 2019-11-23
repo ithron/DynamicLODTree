@@ -63,6 +63,26 @@ extension Node {
     while !(node?.isLeaf ?? true) { node = node?.next() }
     return node
   }
+  
+  public func nextNotIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+    var node = next()
+    while let n = node {
+      if !n.intersects(disk) {
+        // Found non intersecting node
+        return n
+      } else if n.isIncluded(in: disk) {
+        // node is completly included in circle, can skip to next neighbor
+        node = n.nextNeighbor
+      } else {
+        // the node and the disk intersects but node is no subset of disk,
+        // therefore, there might be a child that does not intersect with disk
+        node = n.next()
+      }
+    }
+    
+    // If no node was found until here, there is no node left
+    return nil
+  }
 }
 
 public struct NodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
