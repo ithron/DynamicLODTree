@@ -512,4 +512,44 @@ class DynamicLODTreeTests: XCTestCase {
       }
     })
   }
+  
+  func testIfReclaimIntersectingDiskReclaimsAllIntersectingNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    tree.nodes.forEach { $0.prune() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let modified = tree.reclaim(intersecting: disk)
+    
+    XCTAssertTrue(modified)
+    
+    var node = tree.rootNode.nextIntersecting(disk)
+    while let n = node {
+      XCTAssertFalse(n.isVolatile)
+      node = n.nextIntersecting(disk)
+    }
+  }
+  
+  func testIfReclaimIntersectingDiskDoesNotReclaimsNonIntersectingNode() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    tree.nodes.forEach { $0.prune() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let modified = tree.reclaim(intersecting: disk)
+    
+    XCTAssertTrue(modified)
+    
+    var node = tree.rootNode.nextNotIntersecting(disk)
+    while let n = node {
+      XCTAssertTrue(n.isVolatile)
+      node = n.nextNotIntersecting(disk)
+    }
+  }
 }

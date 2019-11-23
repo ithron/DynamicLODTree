@@ -100,6 +100,33 @@ public extension DynamicLODTree {
     return modified
   }
   
+  /// Reclaims all nodes that intersects the given disk
+  ///
+  /// - Parameter disk: `(origin: Position, radius: Scalar)` disk defined by origin
+  ///  and radius.
+  /// - Returns: `true` iff any node was reclaimed.
+  /// - Postcondition: For any node `n` with `n.intersects(disk) == true` =>
+  /// `n.isVolatile == false`
+  func reclaim(intersecting disk: (origin: Position, radius: Scalar)) -> Bool {
+    var modified = false
+    
+    guard rootNode.intersects(disk) else {
+      // If the root node does not intersect the disk, no nodes does.
+      return false
+    }
+    
+    var node: NodeType? = rootNode.nextIntersecting(disk)
+    while let n = node {
+      if n.isVolatile {
+        n.reclaimNonRecursive()
+        modified = true
+      }
+      node = n.nextIntersecting(disk)
+    }
+    
+    return modified
+  }
+  
   func fit(to circle: (origin: Position, radius: Scalar)) -> Bool {
     // Ensure the circle is contained in the tree
     let grown = grow(toContainCircle: circle)
