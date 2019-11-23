@@ -424,15 +424,15 @@ class DynamicLODTreeTests: XCTestCase {
     tree.rootNode.subdivide()
     tree.rootNode.children!.forEach { $0.subdivide() }
     
-    let disk = (origin: Position.zero, radius: Int32(1))
+    let disk = (origin: Position.zero, radius: Int32(2))
     
-    let refNodes = [
-      tree.rootNode.children!.bottomRight,
-      tree.rootNode.children!.topLeft,
-      tree.rootNode.children!.topRight,
-      tree.rootNode.children!.bottomLeft.children!.topRight
-    ] + tree.rootNode.children!.bottomRight.children! +
-      tree.rootNode.children!.topLeft.children! +
+    let refNodes = [tree.rootNode.children!.topRight] +
+      [tree.rootNode.children!.bottomRight.children!.topLeft,
+       tree.rootNode.children!.bottomRight.children!.topRight,
+       tree.rootNode.children!.bottomRight.children!.bottomRight] +
+      [tree.rootNode.children!.topLeft.children!.topLeft,
+        tree.rootNode.children!.topLeft.children!.topRight,
+       tree.rootNode.children!.topLeft.children!.bottomRight] +
       tree.rootNode.children!.topRight.children!
     
     var nodesVisited: [Tree.NodeType] = []
