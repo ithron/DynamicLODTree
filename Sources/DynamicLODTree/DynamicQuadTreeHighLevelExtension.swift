@@ -40,6 +40,18 @@ public extension DynamicLODTree {
     assert(rootNode.contains(point: point))
   }
   
+  /// Grows the tree so that it covers the complete region bound by the given circle
+  ///
+  /// The growing is performed so, that no node in the current tree is modfied. Only the root node will becime
+  /// a child node. If the circle is already contained in the tree, this operations does nothing and returns
+  /// `false`.
+  ///
+  /// - Parameter circle: `(origin: Porisiont, radius: Scalar)` circle defined by origin
+  ///   and radius.
+  /// - Returns: `true` iff the tree was altered.
+  /// - Postcondition: If the tree conainted `circle` nothing is changed, otherwise
+  ///  for any point `p` inside `circle`: `tree.contains(point: p) == true` and the original
+  ///  branch is completely unchanged.
   func grow(toContainCircle circle: (origin: Position, radius: Scalar)) -> Bool {
     let points = [
       circle.origin &+ Position(circle.radius, 0),
@@ -83,6 +95,33 @@ public extension DynamicLODTree {
       } else {
         nextNode = node.next()
       }
+    }
+    
+    return modified
+  }
+  
+  /// Reclaims all nodes that intersects the given disk
+  ///
+  /// - Parameter disk: `(origin: Position, radius: Scalar)` disk defined by origin
+  ///  and radius.
+  /// - Returns: `true` iff any node was reclaimed.
+  /// - Postcondition: For any node `n` with `n.intersects(disk) == true` =>
+  /// `n.isVolatile == false`
+  func reclaim(intersecting disk: (origin: Position, radius: Scalar)) -> Bool {
+    var modified = false
+    
+    guard rootNode.intersects(disk) else {
+      // If the root node does not intersect the disk, no nodes does.
+      return false
+    }
+    
+    var node: NodeType? = rootNode.nextIntersecting(disk)
+    while let n = node {
+      if n.isVolatile {
+        n.reclaimNonRecursive()
+        modified = true
+      }
+      node = n.nextIntersecting(disk)
     }
     
     return modified

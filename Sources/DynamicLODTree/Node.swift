@@ -169,18 +169,33 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     assert(isLeaf)
   }
   
-  /// Marks a volatile node as non-volatile
+  /// Marks a branch as non-volatile
   ///
   /// Has no effect on non-volatile nodes.
   /// If called on a non-leaf node it reclaims the complete branch. If the parent node is mark as volatile,
   /// it will be reclaimed, too.
-  /// - Postcondition:self.isVolatile == false
+  /// - Postcondition:`self.isVolatile == false` and for all nodes `n` inside the current branch
+  ///   below the current depth: `n.isVolatile == false`.
   public func reclaim() {
     guard isVolatile else { return }
     isVolatile = false
     
     // reclaim children
     children?.forEach { $0.reclaim() }
+    // reclaim parent
+    parent?.reclaim()
+  }
+  
+  /// Marks a single node as non-volatile
+  ///
+  /// Has no effect on non-volatile nodes.
+  /// Does not reclaim any child nodes.
+  /// Reclaims the parent node
+  /// - Postcondition:self.isVolatile == false
+  public func reclaimNonRecursive() {
+    guard isVolatile else { return }
+    isVolatile = false
+
     // reclaim parent
     parent?.reclaim()
   }

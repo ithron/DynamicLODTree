@@ -363,4 +363,180 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertTrue(tree.fit(to: circle))
     XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
   }
+  
+  func testIfNodeIntersectsIntersectingDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    XCTAssertTrue(tree.rootNode.intersects(disk))
+  }
+  
+  func testIfNodeDoesNotIntersectDisjointDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position(-3, 4), radius: Int32(1))
+    
+    XCTAssertFalse(tree.rootNode.intersects(disk))
+  }
+  
+  func testIfNodeIsNotIncludedInPartiallyOverlappingDisk() {
+    let tree = Tree(initialOrigin: Position.zero)
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    XCTAssertFalse(tree.rootNode.isIncluded(in: disk))
+  }
+  
+  func testIfNodeIsIncludedInItsBoundingDisk() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
+    let disk = (origin: Position(1, 1), radius: Int32(2))
+    
+    XCTAssertTrue(tree.rootNode.isIncluded(in: disk))
+  }
+  
+  func testIfNextNotIntersectingNodeDoesNotIntersect() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    var node: Tree.NodeType? = tree.rootNode.nextNotIntersecting(disk)
+    while let n = node {
+      XCTAssertFalse(n.intersects(disk))
+      node = n.nextNotIntersecting(disk)
+    }
+  }
+  
+  func testIfNextNotIntersectingVisitsAllNotIntersectingNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let refNodes = [tree.rootNode.children!.topRight] +
+      [tree.rootNode.children!.bottomRight.children!.topLeft,
+       tree.rootNode.children!.bottomRight.children!.topRight,
+       tree.rootNode.children!.bottomRight.children!.bottomRight] +
+      [tree.rootNode.children!.topLeft.children!.topLeft,
+       tree.rootNode.children!.topLeft.children!.topRight,
+       tree.rootNode.children!.topLeft.children!.bottomRight] +
+      tree.rootNode.children!.topRight.children!
+    
+    var nodesVisited: [Tree.NodeType] = []
+    
+    var node: Tree.NodeType? = tree.rootNode.nextNotIntersecting(disk)
+    while let n = node {
+      nodesVisited.append(n)
+      node = n.nextNotIntersecting(disk)
+    }
+    
+    // check if all visited nodes are included in refNodes
+    XCTAssertTrue(nodesVisited.allSatisfy { ni in
+      refNodes.contains {
+        nj in
+        ni === nj
+      }
+    })
+    
+    // check if all refNodes are included in visitedNodes
+    XCTAssertTrue(refNodes.allSatisfy { ni in
+      nodesVisited.contains {
+        nj in
+        ni === nj
+      }
+    })
+  }
+  
+  func testIfNextIntersectingNodesIntersectDisk() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    let disk = (origin: Position.zero, radius: Int32(1))
+    
+    var node: Tree.NodeType? = tree.rootNode.nextIntersecting(disk)
+    while let n = node {
+      XCTAssertTrue(n.intersects(disk))
+      node = n.nextIntersecting(disk)
+    }
+  }
+  
+  func testIfNextIntersectingVisitsAllIntersectingNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let refNodes = tree.rootNode.children!.bottomLeft.children! +
+      [tree.rootNode.children!.bottomRight.children!.bottomLeft,
+       tree.rootNode.children!.topLeft.children!.bottomLeft,
+       tree.rootNode.children!.bottomLeft,
+       tree.rootNode.children!.bottomRight,
+       tree.rootNode.children!.topLeft]
+    
+    var nodesVisited: [Tree.NodeType] = []
+    
+    var node: Tree.NodeType? = tree.rootNode.nextIntersecting(disk)
+    while let n = node {
+      nodesVisited.append(n)
+      node = n.nextIntersecting(disk)
+    }
+    
+    // check if all visited nodes are included in refNodes
+    XCTAssertTrue(nodesVisited.allSatisfy { ni in
+      refNodes.contains {
+        nj in
+        ni === nj
+      }
+    })
+    
+    // check if all refNodes are included in visitedNodes
+    XCTAssertTrue(refNodes.allSatisfy { ni in
+      nodesVisited.contains {
+        nj in
+        ni === nj
+      }
+    })
+  }
+  
+  func testIfReclaimIntersectingDiskReclaimsAllIntersectingNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    tree.nodes.forEach { $0.prune() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let modified = tree.reclaim(intersecting: disk)
+    
+    XCTAssertTrue(modified)
+    
+    var node = tree.rootNode.nextIntersecting(disk)
+    while let n = node {
+      XCTAssertFalse(n.isVolatile)
+      node = n.nextIntersecting(disk)
+    }
+  }
+  
+  func testIfReclaimIntersectingDiskDoesNotReclaimsNonIntersectingNode() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    
+    tree.nodes.forEach { $0.prune() }
+    
+    let disk = (origin: Position.zero, radius: Int32(2))
+    
+    let modified = tree.reclaim(intersecting: disk)
+    
+    XCTAssertTrue(modified)
+    
+    var node = tree.rootNode.nextNotIntersecting(disk)
+    while let n = node {
+      XCTAssertTrue(n.isVolatile)
+      node = n.nextNotIntersecting(disk)
+    }
+  }
 }

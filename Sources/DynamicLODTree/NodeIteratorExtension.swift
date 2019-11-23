@@ -63,6 +63,70 @@ extension Node {
     while !(node?.isLeaf ?? true) { node = node?.next() }
     return node
   }
+  
+  /// Returns the next branch in the tree or nil if the current branch is the last one
+  public func nextBranch() -> Node? {
+    guard !isRoot else { return nil }
+    
+    var parent = self
+    var pos: NormalizedNodePosition = .bottomLeft
+    
+    // if last child of parent, walk up the tree until another child is available
+    while parent.parent != nil {
+      parent = parent.parent!
+      pos = parent.toNormalized(position: origin)
+      if !pos.isLast {
+        break
+      }
+    }
+    
+    if pos.isLast { return nil }
+    
+    let node = parent.children![pos.next]
+    
+    return node
+  }
+  
+  public func nextNotIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+    var node = next()
+    while let n = node {
+      if !n.intersects(disk) {
+        // Found non intersecting node
+        return n
+      } else if n.isIncluded(in: disk) {
+        // node is completly included in circle, can skip to next neighbor
+        node = n.nextBranch()
+      } else {
+        // the node and the disk intersects but node is no subset of disk,
+        // therefore, there might be a child that does not intersect with disk
+        node = n.next()
+      }
+    }
+    
+    // If no node was found until here, there is no node left
+    return nil
+  }
+  
+  /// Returns the next node that intersects the given disk or nil if there are no more intersecrting nodes
+  ///
+  /// - Parameter disk: `(origin: PositionType, radius: Scalar)` disk to check for
+  ///  intersection with
+  /// - Postcondition: `let n = nextIntersecting(disk)` then
+  /// `n.intersects(disk) == true`
+  public func nextIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+    var node = next()
+    while let n = node {
+      if n.intersects(disk) {
+        return n
+      } else {
+        // if n does not intersect disk, none of the children of n intersects
+        node = n.nextBranch()
+      }
+    }
+    
+    // If no node was found until here, there is no node left
+    return nil
+  }
 }
 
 public struct NodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
