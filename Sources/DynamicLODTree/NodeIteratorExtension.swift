@@ -64,6 +64,29 @@ extension Node {
     return node
   }
   
+  /// Returns the next branch in the tree or nil if the current branch is the last one
+  public func nextBranch() -> Node? {
+    guard !isRoot else { return nil }
+    
+    var parent = self
+    var pos: NormalizedNodePosition = .bottomLeft
+    
+    // if last child of parent, walk up the tree until another child is available
+    while parent.parent != nil {
+      parent = parent.parent!
+      pos = parent.toNormalized(position: origin)
+      if !pos.isLast {
+        break
+      }
+    }
+    
+    if pos.isLast { return nil }
+    
+    let node = parent.children![pos.next]
+    
+    return node
+  }
+  
   public func nextNotIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
     var node = next()
     while let n = node {
