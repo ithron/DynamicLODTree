@@ -67,6 +67,13 @@ public extension DynamicLODTree {
     return true
   }
   
+  /// Prunes all nodes that do not intersect the given disk
+  ///
+  /// - Parameter disk:`(origin: Porisiont, radius: Scalar)` disk defined by origin
+  ///   and radius
+  /// - Returns: `true` iff the tree was altered
+  /// - Postcondition: For all nodes `n`: if `n.intersects(disk) == false` then
+  ///   `n.isVolatile == true`
   func prune(notIntersecting disk: (origin: Position, radius: Scalar)) -> Bool {
     let squaredRadius = disk.radius * disk.radius
     
@@ -80,7 +87,7 @@ public extension DynamicLODTree {
       node = nextNode!
       let maxPoint = node.origin &+ node.size
       let nearestPoint = disk.origin.clamped(lowerBound: node.origin,
-                                               upperBound: maxPoint)
+                                             upperBound: maxPoint)
       let delta = disk.origin &- nearestPoint
       let squaredLength = Position.dot(delta, delta)
       
@@ -125,14 +132,6 @@ public extension DynamicLODTree {
     }
     
     return modified
-  }
-  
-  func fit(to disk: (origin: Position, radius: Scalar)) -> Bool {
-    // Ensure the disk is contained in the tree
-    let grown = grow(toContain: disk)
-    // Prune all nodes outside the disk
-    let pruned = prune(notIntersecting: disk)
-    return grown || pruned
   }
 }
 
