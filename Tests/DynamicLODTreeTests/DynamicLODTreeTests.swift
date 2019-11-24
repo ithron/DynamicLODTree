@@ -295,7 +295,7 @@ class DynamicLODTreeTests: XCTestCase {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 3)
     
     let disk = (origin: tree.origin &+ tree.rootNode.stride,
-                  radius: Int32(1))
+                radius: Int32(1))
     
     let modified = tree.prune(notIntersecting: disk)
     
@@ -328,40 +328,6 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertTrue(tree.rootNode.children!.topLeft.isVolatile)
     XCTAssertTrue(tree.rootNode.children!.topRight.isVolatile)
     XCTAssertTrue(modified)
-  }
-  
-  func testIfFitToDiskDoesContainAllInsideNodesAndNoOutsideNode() {
-    let tree = Tree(initialOrigin: Position.zero)
-    let disk = (origin: Position(2, 2), radius: Int32(1))
-    let modified = tree.fit(to: disk)
-    
-    XCTAssertTrue(modified)
-    XCTAssertFalse(tree.grow(toContain: disk))
-    
-    XCTAssertTrue(tree.rootNode.children!.allSatisfy { !$0.isVolatile })
-    XCTAssertTrue(tree.rootNode.children!.bottomLeft.children!.bottomLeft.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.bottomLeft.children!.bottomRight.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.bottomLeft.children!.topLeft.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.bottomLeft.children!.topRight.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.bottomRight.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.topLeft.isVolatile)
-    XCTAssertFalse(tree.rootNode.children!.topRight.isVolatile)
-  }
-  
-  func testIfFitToDiskReturnsModifedWhenOnlyPruned() {
-    let tree = Tree(initialOrigin: Position.zero)
-    let disk = (origin: Position(2, 2), radius: Int32(1))
-    _ = tree.grow(toContain: disk)
-    
-    XCTAssertTrue(tree.fit(to: disk))
-  }
-  
-  func testIfFitToDiskReturnsModifedWhenOnlyGrown() {
-    let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
-    let disk = (origin: Position(2, 2), radius: Int32(1))
-    
-    XCTAssertTrue(tree.fit(to: disk))
-    XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
   }
   
   func testIfNodeIntersectsIntersectingDisk() {
