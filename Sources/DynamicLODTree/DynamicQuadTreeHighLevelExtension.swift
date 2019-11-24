@@ -32,7 +32,7 @@ public extension DynamicLODTree {
     grow(inDirection: direction)
   }
   
-  func grow(toContainPoint point: Position) {
+  func grow(toContain point: Position) {
     while !rootNode.contains(point: point) {
       grow(inDirectionOf: point)
     }
@@ -63,7 +63,7 @@ public extension DynamicLODTree {
     if points.allSatisfy({ self.rootNode.contains(point: $0) }) {
       return false
     }
-    points.forEach { self.grow(toContainPoint: $0) }
+    points.forEach { self.grow(toContain: $0) }
     return true
   }
   
