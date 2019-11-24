@@ -134,33 +134,33 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertFalse(tree.rootNode.isVolatile)
   }
   
-  func testIfTreeAfterGrowToContainCircleContainsCircle() {
+  func testIfTreeAfterGrowToContainDiskContainsDisk() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 0)
-    let circle = (origin: Position(-10, 10), radius: Int32(200))
+    let disk = (origin: Position(-10, 10), radius: Int32(200))
     
-    _ = tree.grow(toContainCircle: circle)
+    _ = tree.grow(toContain: disk)
     
-    XCTAssertTrue(tree.rootNode.contains(point: circle.origin))
+    XCTAssertTrue(tree.rootNode.contains(point: disk.origin))
     XCTAssertTrue(tree.rootNode.contains(point:
-      circle.origin &- circle.radius &* Position(-1, 0)))
+      disk.origin &- disk.radius &* Position(-1, 0)))
     XCTAssertTrue(tree.rootNode.contains(point:
-      circle.origin &- circle.radius &* Position(1, 0)))
+      disk.origin &- disk.radius &* Position(1, 0)))
     XCTAssertTrue(tree.rootNode.contains(point:
-      circle.origin &- circle.radius &* Position(0, -1)))
+      disk.origin &- disk.radius &* Position(0, -1)))
     XCTAssertTrue(tree.rootNode.contains(point:
-      circle.origin &- circle.radius &* Position(0, 1)))
+      disk.origin &- disk.radius &* Position(0, 1)))
   }
   
-  func testIfMultipleCallToGrowToContainCircleIsEquivalentToSingleCall() {
+  func testIfMultipleCallToGrowToContainDiskIsEquivalentToSingleCall() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 0)
-    let circle = (origin: Position(-10, 10), radius: Int32(200))
+    let disk = (origin: Position(-10, 10), radius: Int32(200))
     
-    _ = tree.grow(toContainCircle: circle)
+    _ = tree.grow(toContain: disk)
     
     let depth = tree.depth
     let origin = tree.origin
     
-    _ = tree.grow(toContainCircle: circle)
+    _ = tree.grow(toContain: disk)
     
     XCTAssertEqual(tree.depth, depth)
     XCTAssertEqual(tree.origin, origin)
@@ -291,37 +291,37 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertTrue(leaf.nextNeighbor === neighbor)
   }
   
-  func testIfPruneOutsideOfCircleDoesNotPruneSingleNode() {
+  func testIfPruneNotIntersectingDiskDoesNotPruneSingleNode() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 3)
     
-    let circle = (origin: tree.origin &+ tree.rootNode.stride,
+    let disk = (origin: tree.origin &+ tree.rootNode.stride,
                   radius: Int32(1))
     
-    let modified = tree.prune(outsideOf: circle)
+    let modified = tree.prune(notIntersecting: disk)
     
     XCTAssertFalse(tree.rootNode.isVolatile)
     XCTAssertFalse(modified)
   }
   
-  func testIfPruneOutsideOfCircleDoesNotPruneNodesInside() {
+  func testIfPruneNotIntersectingDiskDoesNotPruneNodesInside() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
     tree.nodes.forEach { $0.subdivide() }
     
-    let circle = (origin: Position(2, 2), radius: Int32(2))
+    let disk = (origin: Position(2, 2), radius: Int32(2))
     
-    let modified = tree.prune(outsideOf: circle)
+    let modified = tree.prune(notIntersecting: disk)
     
     XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
     XCTAssertFalse(modified)
   }
   
-  func testIfPruneOutsideOfCirclePrunesNodesOutside() {
+  func testIfPruneNotIntersectingDiskPrunesIntersectingNodes() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
     tree.rootNode.subdivide()
     
-    let circle = (origin: Position.zero, radius: Int32(1))
+    let disk = (origin: Position.zero, radius: Int32(1))
     
-    let modified = tree.prune(outsideOf: circle)
+    let modified = tree.prune(notIntersecting: disk)
     
     XCTAssertFalse(tree.rootNode.children!.bottomLeft.isVolatile)
     XCTAssertTrue(tree.rootNode.children!.bottomRight.isVolatile)
@@ -330,13 +330,13 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertTrue(modified)
   }
   
-  func testIfFitToCircleDoesContainAllInsideNodesAndNoOutsideNode() {
+  func testIfFitToDiskDoesContainAllInsideNodesAndNoOutsideNode() {
     let tree = Tree(initialOrigin: Position.zero)
-    let circle = (origin: Position(2, 2), radius: Int32(1))
-    let modified = tree.fit(to: circle)
+    let disk = (origin: Position(2, 2), radius: Int32(1))
+    let modified = tree.fit(to: disk)
     
     XCTAssertTrue(modified)
-    XCTAssertFalse(tree.grow(toContainCircle: circle))
+    XCTAssertFalse(tree.grow(toContain: disk))
     
     XCTAssertTrue(tree.rootNode.children!.allSatisfy { !$0.isVolatile })
     XCTAssertTrue(tree.rootNode.children!.bottomLeft.children!.bottomLeft.isVolatile)
@@ -348,19 +348,19 @@ class DynamicLODTreeTests: XCTestCase {
     XCTAssertFalse(tree.rootNode.children!.topRight.isVolatile)
   }
   
-  func testIfFitToCircleReturnsModifedWhenOnlyPruned() {
+  func testIfFitToDiskReturnsModifedWhenOnlyPruned() {
     let tree = Tree(initialOrigin: Position.zero)
-    let circle = (origin: Position(2, 2), radius: Int32(1))
-    _ = tree.grow(toContainCircle: circle)
+    let disk = (origin: Position(2, 2), radius: Int32(1))
+    _ = tree.grow(toContain: disk)
     
-    XCTAssertTrue(tree.fit(to: circle))
+    XCTAssertTrue(tree.fit(to: disk))
   }
   
-  func testIfFitToCircleReturnsModifedWhenOnlyGrown() {
+  func testIfFitToDiskReturnsModifedWhenOnlyGrown() {
     let tree = Tree(initialOrigin: Position.zero, initialDepth: 1)
-    let circle = (origin: Position(2, 2), radius: Int32(1))
+    let disk = (origin: Position(2, 2), radius: Int32(1))
     
-    XCTAssertTrue(tree.fit(to: circle))
+    XCTAssertTrue(tree.fit(to: disk))
     XCTAssertFalse(tree.nodes.contains(where: { $0.isVolatile }))
   }
   

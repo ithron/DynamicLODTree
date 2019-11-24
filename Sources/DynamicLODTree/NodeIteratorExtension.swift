@@ -94,7 +94,7 @@ extension Node {
         // Found non intersecting node
         return n
       } else if n.isIncluded(in: disk) {
-        // node is completly included in circle, can skip to next neighbor
+        // node is completly included in disk, can skip to next neighbor
         node = n.nextBranch()
       } else {
         // the node and the disk intersects but node is no subset of disk,

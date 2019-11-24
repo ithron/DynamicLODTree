@@ -40,24 +40,24 @@ public extension DynamicLODTree {
     assert(rootNode.contains(point: point))
   }
   
-  /// Grows the tree so that it covers the complete region bound by the given circle
+  /// Grows the tree so that it covers the complete region bound by the given disk
   ///
-  /// The growing is performed so, that no node in the current tree is modfied. Only the root node will becime
-  /// a child node. If the circle is already contained in the tree, this operations does nothing and returns
-  /// `false`.
+  /// The growing is performed so, that no node in the current tree is modfied. Only the root node will
+  /// become a child node. If the disk is already contained in the tree, this operations does nothing and
+  /// returns `false`.
   ///
-  /// - Parameter circle: `(origin: Porisiont, radius: Scalar)` circle defined by origin
+  /// - Parameter disk: `(origin: Porisiont, radius: Scalar)` disk defined by origin
   ///   and radius.
   /// - Returns: `true` iff the tree was altered.
-  /// - Postcondition: If the tree conainted `circle` nothing is changed, otherwise
-  ///  for any point `p` inside `circle`: `tree.contains(point: p) == true` and the original
+  /// - Postcondition: If the tree conainted `disk` nothing is changed, otherwise
+  ///  for any point `p` inside `disk`: `tree.contains(point: p) == true` and the original
   ///  branch is completely unchanged.
-  func grow(toContainCircle circle: (origin: Position, radius: Scalar)) -> Bool {
+  func grow(toContain disk: (origin: Position, radius: Scalar)) -> Bool {
     let points = [
-      circle.origin &+ Position(circle.radius, 0),
-      circle.origin &- Position(circle.radius, 0),
-      circle.origin &+ Position(0, circle.radius),
-      circle.origin &- Position(0, circle.radius)
+      disk.origin &+ Position(disk.radius, 0),
+      disk.origin &- Position(disk.radius, 0),
+      disk.origin &+ Position(0, disk.radius),
+      disk.origin &- Position(0, disk.radius)
     ]
     
     if points.allSatisfy({ self.rootNode.contains(point: $0) }) {
@@ -67,21 +67,21 @@ public extension DynamicLODTree {
     return true
   }
   
-  func prune(outsideOf circle: (origin: Position, radius: Scalar)) -> Bool {
-    let squaredRadius = circle.radius * circle.radius
+  func prune(notIntersecting disk: (origin: Position, radius: Scalar)) -> Bool {
+    let squaredRadius = disk.radius * disk.radius
     
     var modified = false
     
-    // Remove all nodes that are completely outside the circle
+    // Remove all nodes that are completely outside the disk
     var node = rootNode
     var nextNode: NodeType? = node
     
     while nextNode != nil {
       node = nextNode!
       let maxPoint = node.origin &+ node.size
-      let nearestPoint = circle.origin.clamped(lowerBound: node.origin,
+      let nearestPoint = disk.origin.clamped(lowerBound: node.origin,
                                                upperBound: maxPoint)
-      let delta = circle.origin &- nearestPoint
+      let delta = disk.origin &- nearestPoint
       let squaredLength = Position.dot(delta, delta)
       
       if squaredLength > squaredRadius {
@@ -127,11 +127,11 @@ public extension DynamicLODTree {
     return modified
   }
   
-  func fit(to circle: (origin: Position, radius: Scalar)) -> Bool {
-    // Ensure the circle is contained in the tree
-    let grown = grow(toContainCircle: circle)
-    // Prune all nodes outside the circle
-    let pruned = prune(outsideOf: circle)
+  func fit(to disk: (origin: Position, radius: Scalar)) -> Bool {
+    // Ensure the disk is contained in the tree
+    let grown = grow(toContain: disk)
+    // Prune all nodes outside the disk
+    let pruned = prune(notIntersecting: disk)
     return grown || pruned
   }
 }
