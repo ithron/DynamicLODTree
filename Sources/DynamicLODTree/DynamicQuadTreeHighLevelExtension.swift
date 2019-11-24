@@ -75,33 +75,16 @@ public extension DynamicLODTree {
   /// - Postcondition: For all nodes `n`: if `n.intersects(disk) == false` then
   ///   `n.isVolatile == true`
   func prune(notIntersecting disk: (origin: Position, radius: Scalar)) -> Bool {
-    let squaredRadius = disk.radius * disk.radius
-    
     var modified = false
     
-    // Remove all nodes that are completely outside the disk
-    var node = rootNode
-    var nextNode: NodeType? = node
+    var node = rootNode.nextNotIntersecting(disk)
     
-    while nextNode != nil {
-      node = nextNode!
-      let maxPoint = node.origin &+ node.size
-      let nearestPoint = disk.origin.clamped(lowerBound: node.origin,
-                                             upperBound: maxPoint)
-      let delta = disk.origin &- nearestPoint
-      let squaredLength = Position.dot(delta, delta)
-      
-      if squaredLength > squaredRadius {
-        node.prune()
+    while let n = node {
+      if !n.isVolatile {
+        n.prune()
         modified = true
-        if let nextNeighbor = node.nextNeighbor {
-          nextNode = nextNeighbor
-        } else {
-          return modified
-        }
-      } else {
-        nextNode = node.next()
       }
+      node = node?.nextNotIntersecting(disk)
     }
     
     return modified
