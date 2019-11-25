@@ -543,4 +543,10 @@ class DynamicLODTreeTests: XCTestCase {
       visitedNodes.contains(where: { j in i === j })
     }))
   }
+  
+  func testIfNextNonVolatileReturnsNilIfTreeIsEmpty() {
+    let tree = Tree(initialOrigin: Position.zero)
+    
+    XCTAssertNil(tree.rootNode.nextNonVolatile())
+  }
 }

@@ -132,7 +132,20 @@ extension Node {
   ///
   /// - Returns: The next non-volatile node in the tree or nil of no such exists
   public func nextNonVolatile() -> Node? {
-    var node = next()
+    guard let node = next() else { return nil }
+    
+    if node.isVolatile {
+      return node.nextNonVolatileBranch()
+    }
+    
+    return node
+  }
+  
+  /// Returns the next non-volatile branch in the tree
+  ///
+  /// - Returns: The first node of the next non-volatile tree or nil if no such exists
+  public func nextNonVolatileBranch() -> Node? {
+    var node = nextBranch()
     
     while let n = node {
       if n.isVolatile {
