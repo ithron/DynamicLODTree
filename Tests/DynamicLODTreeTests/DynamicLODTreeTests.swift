@@ -505,4 +505,42 @@ class DynamicLODTreeTests: XCTestCase {
       node = n.nextNotIntersecting(disk)
     }
   }
+  
+  func testIfNextNonVolatileIsAlwaysNonVolatile() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    let disk = (origin: Position.zero, radius: Int32(2))
+    _ = tree.prune(notIntersecting: disk)
+    
+    var node = tree.rootNode.nextNonVolatile()
+    
+    while let n = node {
+      XCTAssertFalse(node!.isVolatile)
+      node = n.nextNonVolatile()
+    }
+  }
+  
+  func testIfNextNonVolatileVisitsAllNonVolatileNodes() {
+    let tree = Tree(initialOrigin: Position.zero, initialDepth: 2)
+    tree.rootNode.subdivide()
+    tree.rootNode.children!.forEach { $0.subdivide() }
+    let disk = (origin: Position.zero, radius: Int32(2))
+    _ = tree.prune(notIntersecting: disk)
+    
+    let nonVolatileNodes: [Tree.NodeType] = tree.nodes.lazy.filter { !$0.isVolatile }
+    var visitedNodes: [Tree.NodeType] = [tree.rootNode]
+    
+    var node = tree.rootNode.nextNonVolatile()
+    
+    while let n = node {
+      XCTAssertTrue(nonVolatileNodes.contains(where: { $0 === n }))
+      visitedNodes.append(n)
+      node = n.nextNonVolatile()
+    }
+    
+    XCTAssertTrue(nonVolatileNodes.allSatisfy({ i in
+      visitedNodes.contains(where: { j in i === j })
+    }))
+  }
 }

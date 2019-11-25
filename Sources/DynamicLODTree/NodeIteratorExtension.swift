@@ -127,6 +127,23 @@ extension Node {
     // If no node was found until here, there is no node left
     return nil
   }
+  
+  /// Returns the next non volatile node in the tree
+  ///
+  /// - Returns: The next non-volatile node in the tree or nil of no such exists
+  public func nextNonVolatile() -> Node? {
+    var node = next()
+    
+    while let n = node {
+      if n.isVolatile {
+        node = n.nextBranch()
+      } else {
+        return n
+      }
+    }
+    
+    return nil
+  }
 }
 
 public struct NodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
