@@ -24,52 +24,55 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public struct TreeNodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
-  public typealias Element = Tree<Content, Position>.NodeType
-  
-  weak var node: Element?
-  var isFirst = true
-  
-  init(node: Element?) {
-    self.node = node
-  }
-  
-  public mutating func next() -> Element? {
-    if isFirst {
-      isFirst = false
-    } else {
-      guard let node = self.node else { return nil }
-      self.node = node.next()
+public extension Tree {
+  struct NodeIterator: IteratorProtocol {
+    public typealias Element = Tree.Node
+    
+    weak var node: Element?
+    var isFirst = true
+    
+    init(node: Element?) {
+      self.node = node
     }
     
-    return node
+    public mutating func next() -> Element? {
+      if isFirst {
+        isFirst = false
+      } else {
+        guard let node = self.node else { return nil }
+        self.node = node.next()
+      }
+      
+      return node
+    }
   }
 }
 
-public struct TreeNodeSequence<Content, Position: IntegerPosition2D>: Sequence {
-  public typealias Iterator = TreeNodeIterator<Content, Position>
-  public typealias TreeType = Tree<Content, Position>
-  
-  var tree: TreeType
-  
-  init(tree: TreeType) {
-    self.tree = tree
-  }
-  
-  public func makeIterator() -> Iterator {
-    return Iterator(node: tree.rootNode)
+public extension Tree {
+  struct NodeSequence: Sequence {
+    public typealias Iterator = Tree.NodeIterator
+    
+    var tree: Tree
+    
+    init(tree: Tree) {
+      self.tree = tree
+    }
+    
+    public func makeIterator() -> Iterator {
+      return Iterator(node: tree.rootNode)
+    }
   }
 }
 
 public extension Tree {
   /// A sequence over the nodes of the tree
-  var nodes: TreeNodeSequence<Content, Position> {
-    TreeNodeSequence<Content, Position>(tree: self)
+  var nodes: NodeSequence {
+    NodeSequence(tree: self)
   }
   
   /// A sequence over the leafs of the tree
-  var leafs: LazyFilterSequence<TreeNodeSequence<Content, Position>> {
-    TreeNodeSequence<Content, Position>(tree: self).lazy.filter {
+  var leafs: LazyFilterSequence<NodeSequence> {
+    NodeSequence(tree: self).lazy.filter {
       $0.isLeaf
     }
   }

@@ -1,5 +1,5 @@
 //
-//  SubNodes.swift
+// SubNodes.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -24,17 +24,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public struct SubNodes<Content, Position: IntegerPosition2D> {
-  public typealias NodeType = Node<Content, Position>
-  
-  public var bottomLeft: NodeType
-  public var bottomRight: NodeType
-  public var topLeft: NodeType
-  public var topRight: NodeType
+// MARK: - SubNodes Class Definition
+
+public extension Tree.Node {
+  struct SubNodes {
+    public typealias Node = Tree.Node
+
+    public var bottomLeft: Node
+    public var bottomRight: Node
+    public var topLeft: Node
+    public var topRight: Node
+  }
 }
 
-public extension SubNodes {
-  subscript(position: NormalizedNodePosition) -> NodeType {
+// MARK: - SubNodes Subscript
+
+public extension Tree.Node.SubNodes {
+  subscript(position: NormalizedNodePosition) -> Node {
     get {
       switch position {
       case .bottomLeft: return bottomLeft
@@ -54,39 +60,45 @@ public extension SubNodes {
   }
 }
 
-public extension SubNodes {
-  var first: NodeType { bottomLeft }
-  
+// MARK: - SubNodes Computed Properties
+
+public extension Tree.Node.SubNodes {
+  var first: Node { bottomLeft }
+
   // Number of non-volatile nodes
   var nonVolatileCount: Int {
     reduce(0) { $1.isVolatile ? $0 : $0 + 1 }
   }
-  
+
   // First non-volatile node
-  var firstNonVolatile: NodeType? { first { !$0.isVolatile } }
+  var firstNonVolatile: Node? { first { !$0.isVolatile } }
 }
 
-public extension SubNodes {
+// MARK: - Swapping
+
+public extension Tree.Node.SubNodes {
   mutating func swap(_ lhs: NormalizedNodePosition, _ rhs: NormalizedNodePosition) {
     let tmp = self[lhs]
     self[lhs] = self[rhs]
     self[rhs] = tmp
   }
-  
+
   mutating func swapLeftRight() {
     swap(.bottomLeft, .bottomRight)
     swap(.topLeft, .topRight)
   }
-  
+
   mutating func swapBottomTop() {
     swap(.bottomLeft, .topLeft)
     swap(.bottomRight, .topRight)
   }
 }
 
-extension SubNodes: Sequence {
-  public typealias Iterator = Array<NodeType>.Iterator
-  
+// MARK: - Sequence Extension
+
+extension Tree.Node.SubNodes: Sequence {
+  public typealias Iterator = Array<Node>.Iterator
+
   public func makeIterator() -> Iterator {
     return [bottomLeft, bottomRight, topLeft, topRight].makeIterator()
   }

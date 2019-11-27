@@ -24,69 +24,84 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public final class Node<Content, PositionType: IntegerPosition2D> {
-  public typealias Scalar = PositionType.Scalar
+public extension Tree {
+  // MARK: - Node Class Definition
   
-  public typealias Depth = UInt8
-  
-  // MARK: - Members
-  
-  /// The node's origin (bottom left corner)
-  public internal(set) var origin: PositionType
-  
-  /// The node's depth. Its size is 2^depth
-  public let depth: Depth
-  
-  /// The content associated with the node, optional
-  public var content: Content?
-  
-  /// Child nodes
-  public internal(set) var children: SubNodes<Content, PositionType>?
-  
-  /// The parent node, if nil this is the root node
-  public internal(set) weak var parent: Node?
-  
-  /// A volatile node might be removed on a tree clean up
-  public private(set) var isVolatile: Bool = false
-  
+  final class Node {
+    public typealias Depth = Tree.Depth
+    public typealias Scalar = Tree.Scalar
+    
+    // MARK: Members
+    
+    /// The node's origin (bottom left corner)
+    public internal(set) var origin: Position
+    
+    /// The node's depth. Its size is 2^depth
+    public let depth: Depth
+    
+    /// The content associated with the node, optional
+    public var content: Content?
+    
+    /// Child nodes
+    public internal(set) var children: SubNodes?
+    
+    /// The parent node, if nil this is the root node
+    public internal(set) weak var parent: Node?
+    
+    /// A volatile node might be removed on a tree clean up
+    public private(set) var isVolatile: Bool = false
+    
+    // MARK: Initializer
+    
+    /// Initializes a node given its origin depth an optionally parent
+    ///
+    /// - Parameter origin: the origin (bottom left corner) of the node/cell
+    /// - Parameter depth: The node's depth. A node with depth 0 must be a leaf
+    /// - Parameter parent: Optional parent node
+    internal init(origin: Position, depth: Depth, parent: Node?) {
+      self.origin = origin
+      self.depth = depth
+      self.parent = parent
+    }
+  }
+}
+
+// MARK: - Public Computed Properties
+
+public extension Tree.Node {
   /// Test if this node is a leaf, i.e. has no children
-  public var isLeaf: Bool { children == nil }
+  var isLeaf: Bool { children == nil }
   
   /// test if this node is the root node of a tree
-  public var isRoot: Bool { parent == nil }
+  var isRoot: Bool { parent == nil }
   
   /// Returns the number of non-volatile childrens
-  public var childCount: Int { children?.nonVolatileCount ?? 0 }
+  var childCount: Int { children?.nonVolatileCount ?? 0 }
   
   /// The node's stride, i.e. the number of elements between two neighboring sub nodes
-  public var stride: Scalar { depth > 0 ? (Scalar(1) << Scalar(depth - 1)) : 0 }
+  var stride: Scalar { depth > 0 ? (Scalar(1) << Scalar(depth - 1)) : 0 }
   
   /// The size of the node
-  public var size: Scalar { Scalar(1) << Scalar(depth) }
-  
-  // MARK: - Initializer
-  
-  /// Initializes a node given its origin depth an optionally parent
-  ///
-  /// - Parameter origin: the origin (bottom left corner) of the node/cell
-  /// - Parameter depth: The node's depth. A node with depth 0 must be a leaf
-  /// - Parameter parent: Optional parent node
-  internal init(origin: PositionType, depth: Depth, parent: Node?) {
-    self.origin = origin
-    self.depth = depth
-    self.parent = parent
-  }
-  
-  // MARK: - Accessors
+  var size: Scalar { Scalar(1) << Scalar(depth) }
+}
+
+// MARK: - Accessors
+
+public extension Tree.Node {
+  // MARK: Public
   
   /// Checks if the given point lies inside the node's cell
   ///
   /// - Parameter point: Point to query
   /// - Returns: true if point lies inside the node's cell, false otherwise
-  public func contains(point: PositionType) -> Bool {
+  func contains(point: Position) -> Bool {
     return (origin.x ..< origin.x + size).contains(point.x) &&
       (origin.y ..< origin.y + size).contains(point.y)
   }
+}
+
+extension Tree.Node {
+  // MARK: Internal
   
   /// Returns the child node at the given position
   ///
@@ -98,7 +113,7 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   ///
   /// - Returns: The child (or leaf) node at the given position or nil if either the position is outside the current patch or
   ///    the current node does not have children
-  func node(at position: PositionType, recursive: Bool = false) -> Node? {
+  func node(at position: Position, recursive: Bool = false) -> Tree.Node? {
     guard contains(point: position) else { return nil }
     
     guard let children = self.children else { return self }
@@ -114,14 +129,12 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     return child
   }
   
-  // MARK: Internal
-  
   /// Converts the given aboslute position into a normalized node position
   ///
   /// - Parameter position: Query position
   /// - Returns: normalized node position of child node at the given position
   /// - Precondition: self.contains(point: position) == true && self.depth > 0
-  internal func toNormalized(position: PositionType) -> NormalizedNodePosition {
+  func toNormalized(position: Position) -> NormalizedNodePosition {
     assert(contains(point: position))
     assert(depth > 0)
     
@@ -131,18 +144,22 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     return NormalizedNodePosition(rawValue: index)!
   }
   
-  internal func originFor(normalizedPosition: NormalizedNodePosition) -> PositionType {
-    return origin &+ stride &* PositionType(normalizedPosition)
+  internal func originFor(normalizedPosition: NormalizedNodePosition) -> Position {
+    return origin &+ stride &* Position(normalizedPosition)
   }
-  
-  // MARK: - Modifiers
+}
+
+// MARK: - Modifiers
+
+public extension Tree.Node {
+  // MARK: Public
   
   /// Subdivides the current leaf node/cell into 4 subnodes
   ///
   /// Does nothing if the node is not a leaf or has depth 0
   /// Since a disposable node must not have leaf, the node is no longer disposable after subdivision, if it wa
   /// before.
-  public func subdivide() {
+  func subdivide() {
     guard depth > 0 else { return }
     
     isVolatile = false
@@ -150,20 +167,20 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     if children == nil {
       let newDepth = depth - 1
       
-      children = SubNodes(bottomLeft: Node(origin: originFor(normalizedPosition: .bottomLeft),
+      children = SubNodes(bottomLeft: Self(origin: originFor(normalizedPosition: .bottomLeft),
                                            depth: newDepth, parent: self),
-                          bottomRight: Node(origin: originFor(normalizedPosition: .bottomRight),
+                          bottomRight: Self(origin: originFor(normalizedPosition: .bottomRight),
                                             depth: newDepth, parent: self),
-                          topLeft: Node(origin: originFor(normalizedPosition: .topLeft),
+                          topLeft: Self(origin: originFor(normalizedPosition: .topLeft),
                                         depth: newDepth, parent: self),
-                          topRight: Node(origin: originFor(normalizedPosition: .topRight),
+                          topRight: Self(origin: originFor(normalizedPosition: .topRight),
                                          depth: newDepth, parent: self))
     }
   }
   
   /// Merges the current subtree into a single node/cell
   /// - Postcondition: self.isLeaf
-  public func merge() {
+  func merge() {
     children = nil
     
     assert(isLeaf)
@@ -176,7 +193,7 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   /// it will be reclaimed, too.
   /// - Postcondition:`self.isVolatile == false` and for all nodes `n` inside the current branch
   ///   below the current depth: `n.isVolatile == false`.
-  public func reclaim() {
+  func reclaim() {
     guard isVolatile else { return }
     isVolatile = false
     
@@ -192,10 +209,10 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   /// Does not reclaim any child nodes.
   /// Reclaims the parent node
   /// - Postcondition:self.isVolatile == false
-  public func reclaimNonRecursive() {
+  func reclaimNonRecursive() {
     guard isVolatile else { return }
     isVolatile = false
-
+    
     // reclaim parent
     parent?.reclaim()
   }
@@ -211,7 +228,7 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   /// - Postcondition: node.isVolatile == true && node.isLeaf == true
   /// - Note: `prune` never removes a node. All it does it marking nodes as volatile.
   ///    To actually remove a node from the tree call `cleanUp`.
-  public func prune() {
+  func prune() {
     guard !isVolatile else { return }
     
     isVolatile = !isRoot
@@ -230,7 +247,7 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   /// Removes all volatile sub branches.
   ///
   /// - Attention: Might invalidate node iterators
-  public func cleanUp() {
+  func cleanUp() {
     guard isVolatile else { return }
     
     // Test if parent is also marked as volatile. If so, delegate the clean up
@@ -245,7 +262,9 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
     // remove all sub-nodes
     children = nil
   }
-  
+}
+
+extension Tree.Node {
   // MARK: Internal
   
   /// Replaces the node at the given position with the given new node
@@ -255,7 +274,7 @@ public final class Node<Content, PositionType: IntegerPosition2D> {
   /// - Parameter position: position to insert the node at
   /// - Parameter newNode: the node to insert/replace
   /// - Precondition: self.contains(point: position) == true && self.depth > newNode.depth
-  internal func replaceNode(at position: PositionType, with newNode: Node) {
+  func replaceNode(at position: Position, with newNode: Tree.Node) {
     assert(contains(point: position))
     assert(depth > newNode.depth)
     

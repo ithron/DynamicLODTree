@@ -175,9 +175,9 @@ class DynamicLODTreeTests: XCTestCase {
       tree.rootNode.children! +
       tree.rootNode.children!.first.children!
     
-    var visitedNodes: [Tree.NodeType] = []
+    var visitedNodes: [Tree.Node] = []
     
-    var node: Tree.NodeType? = tree.rootNode
+    var node: Tree.Node? = tree.rootNode
     repeat {
       visitedNodes.append(node!)
       node = node!.next()
@@ -365,7 +365,7 @@ class DynamicLODTreeTests: XCTestCase {
     
     let disk = (origin: Position.zero, radius: Int32(1))
     
-    var node: Tree.NodeType? = tree.rootNode.nextNotIntersecting(disk)
+    var node: Tree.Node? = tree.rootNode.nextNotIntersecting(disk)
     while let n = node {
       XCTAssertFalse(n.intersects(disk))
       node = n.nextNotIntersecting(disk)
@@ -388,9 +388,9 @@ class DynamicLODTreeTests: XCTestCase {
        tree.rootNode.children!.topLeft.children!.bottomRight] +
       tree.rootNode.children!.topRight.children!
     
-    var nodesVisited: [Tree.NodeType] = []
+    var nodesVisited: [Tree.Node] = []
     
-    var node: Tree.NodeType? = tree.rootNode.nextNotIntersecting(disk)
+    var node: Tree.Node? = tree.rootNode.nextNotIntersecting(disk)
     while let n = node {
       nodesVisited.append(n)
       node = n.nextNotIntersecting(disk)
@@ -420,7 +420,7 @@ class DynamicLODTreeTests: XCTestCase {
     
     let disk = (origin: Position.zero, radius: Int32(1))
     
-    var node: Tree.NodeType? = tree.rootNode.nextIntersecting(disk)
+    var node: Tree.Node? = tree.rootNode.nextIntersecting(disk)
     while let n = node {
       XCTAssertTrue(n.intersects(disk))
       node = n.nextIntersecting(disk)
@@ -441,9 +441,9 @@ class DynamicLODTreeTests: XCTestCase {
        tree.rootNode.children!.bottomRight,
        tree.rootNode.children!.topLeft]
     
-    var nodesVisited: [Tree.NodeType] = []
+    var nodesVisited: [Tree.Node] = []
     
-    var node: Tree.NodeType? = tree.rootNode.nextIntersecting(disk)
+    var node: Tree.Node? = tree.rootNode.nextIntersecting(disk)
     while let n = node {
       nodesVisited.append(n)
       node = n.nextIntersecting(disk)
@@ -528,8 +528,8 @@ class DynamicLODTreeTests: XCTestCase {
     let disk = (origin: Position.zero, radius: Int32(2))
     _ = tree.prune(notIntersecting: disk)
     
-    let nonVolatileNodes: [Tree.NodeType] = tree.nodes.lazy.filter { !$0.isVolatile }
-    var visitedNodes: [Tree.NodeType] = [tree.rootNode]
+    let nonVolatileNodes: [Tree.Node] = tree.nodes.lazy.filter { !$0.isVolatile }
+    var visitedNodes: [Tree.Node] = [tree.rootNode]
     
     var node = tree.rootNode.nextNonVolatile()
     

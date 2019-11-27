@@ -1,5 +1,5 @@
 //
-//  GeometricQueriesNodeExtension.swift
+// GeometricQueriesNodeExtension.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -24,7 +24,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public extension Node {
+public extension Tree.Node {
   /// Computes the squared distance from the square region of the node to the given point
   ///
   /// The returned squared distance is the squared euclidean distance between `point` and the nearest
@@ -34,11 +34,11 @@ public extension Node {
   /// - Parameter point: point to compute the squared distance to
   /// - Returns: Squared euclidean distance between `point` and the closest point inside the node's
   ///     region or zero if `point` lies insde the region.
-  func squaredDistance(to point: PositionType) -> Scalar {
+  func squaredDistance(to point: Position) -> Scalar {
     let maxPoint = origin &+ size
     let nearestPoint = point.clamped(lowerBound: origin, upperBound: maxPoint)
     let delta = point &- nearestPoint
-    let squaredLength = PositionType.dot(delta, delta)
+    let squaredLength = Position.dot(delta, delta)
     
     return squaredLength
   }
@@ -49,7 +49,7 @@ public extension Node {
   ///
   /// - Parameter disk: `(origin: PositionType, radius:Scalar)`, disk with origin and radius
   /// - Returns: `true` iff the node's area and the disk intersect.
-  func intersects(_ disk: (origin: PositionType, radius: Scalar)) -> Bool {
+  func intersects(_ disk: (origin: Position, radius: Scalar)) -> Bool {
     let dist = squaredDistance(to: disk.origin)
     
     return dist <= (disk.radius * disk.radius)
@@ -61,11 +61,11 @@ public extension Node {
   ///
   /// - Parameter disk: `(origin: PositionType, radius:Scalar)`, disk with origin and radius
   /// - Returns: `true` iff the node's area in completely included in `disk`
-  func isIncluded(in disk: (origin: PositionType, radius: Scalar)) -> Bool {
+  func isIncluded(in disk: (origin: Position, radius: Scalar)) -> Bool {
     let queryPoints = [
       origin,
-      origin &+ PositionType(size, 0),
-      origin &+ PositionType(0, size),
+      origin &+ Position(size, 0),
+      origin &+ Position(0, size),
       origin &+ size
     ]
     
@@ -73,7 +73,7 @@ public extension Node {
     
     return queryPoints.allSatisfy { q in
       let delta = disk.origin &- q
-      let distSq = PositionType.dot(delta, delta)
+      let distSq = Position.dot(delta, delta)
       return distSq <= rSq
     }
   }

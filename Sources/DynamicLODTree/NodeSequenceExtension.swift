@@ -24,8 +24,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-extension Node: Sequence {
-  public typealias Iterator = NodeIterator<Content, PositionType>
+extension Tree.Node: Sequence {
+  public typealias Iterator = NodeIterator
   
   public var nodeCount: Int {
     guard let children = self.children else { return 1 }

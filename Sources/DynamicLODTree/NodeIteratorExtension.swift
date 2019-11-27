@@ -24,8 +24,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-extension Node {
-  public func next() -> Node? {
+extension Tree.Node {
+  public func next() -> Tree.Node? {
     // If the current node is a leaf one needs to go up the tree to find the
     // next node
     if isLeaf {
@@ -58,14 +58,14 @@ extension Node {
     return children!.first
   }
   
-  public func nextLeaf() -> Node? {
+  public func nextLeaf() -> Tree.Node? {
     var node = next()
     while !(node?.isLeaf ?? true) { node = node?.next() }
     return node
   }
   
   /// Returns the next branch in the tree or nil if the current branch is the last one
-  public func nextBranch() -> Node? {
+  public func nextBranch() -> Tree.Node? {
     guard !isRoot else { return nil }
     
     var parent = self
@@ -87,7 +87,7 @@ extension Node {
     return node
   }
   
-  public func nextNotIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+  public func nextNotIntersecting(_ disk: (origin: Position, radius: Scalar)) -> Tree.Node? {
     var node = next()
     while let n = node {
       if !n.intersects(disk) {
@@ -113,7 +113,7 @@ extension Node {
   ///  intersection with
   /// - Postcondition: `let n = nextIntersecting(disk)` then
   /// `n.intersects(disk) == true`
-  public func nextIntersecting(_ disk: (origin: PositionType, radius: Scalar)) -> Node? {
+  public func nextIntersecting(_ disk: (origin: Position, radius: Scalar)) -> Tree.Node? {
     var node = next()
     while let n = node {
       if n.intersects(disk) {
@@ -131,7 +131,7 @@ extension Node {
   /// Returns the next non volatile node in the tree
   ///
   /// - Returns: The next non-volatile node in the tree or nil of no such exists
-  public func nextNonVolatile() -> Node? {
+  public func nextNonVolatile() -> Tree.Node? {
     guard let node = next() else { return nil }
     
     if node.isVolatile {
@@ -144,7 +144,7 @@ extension Node {
   /// Returns the next non-volatile branch in the tree
   ///
   /// - Returns: The first node of the next non-volatile tree or nil if no such exists
-  public func nextNonVolatileBranch() -> Node? {
+  public func nextNonVolatileBranch() -> Tree.Node? {
     var node = nextBranch()
     
     while let n = node {
@@ -159,22 +159,26 @@ extension Node {
   }
 }
 
-public struct NodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
-  public typealias Element = Node<Content, Position>
-  
-  var node: Element?
-  
-  public func next() -> Node<Content, Position>? {
-    return node?.next()
+public extension Tree.Node {
+  struct NodeIterator: IteratorProtocol {
+    public typealias Element = Tree.Node
+    
+    var node: Element?
+    
+    public func next() -> Tree.Node? {
+      return node?.next()
+    }
   }
 }
 
-public struct LeafIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
-  public typealias Element = Node<Content, Position>
-  
-  var node: Element?
-  
-  public func next() -> Node<Content, Position>? {
-    return node?.nextLeaf()
+public extension Tree.Node {
+  struct LeafIterator: IteratorProtocol {
+    public typealias Element = Tree.Node
+    
+    var node: Element?
+    
+    public func next() -> Tree.Node? {
+      return node?.nextLeaf()
+    }
   }
 }

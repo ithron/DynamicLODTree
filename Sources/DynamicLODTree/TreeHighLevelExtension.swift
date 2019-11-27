@@ -105,7 +105,7 @@ public extension Tree {
       return false
     }
     
-    var node: NodeType? = rootNode.nextIntersecting(disk)
+    var node: Node? = rootNode.nextIntersecting(disk)
     while let n = node {
       if n.isVolatile {
         n.reclaimNonRecursive()

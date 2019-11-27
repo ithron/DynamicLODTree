@@ -26,8 +26,7 @@
 
 /// A class representing a dynamic spatial quad tree
 public class Tree<Content, Position: IntegerPosition2D> {
-  public typealias NodeType = Node<Content, Position>
-  public typealias Depth = NodeType.Depth
+  public typealias Depth = UInt8
   public typealias Scalar = Position.Scalar
   
   public enum Direction { case left, right, up, down }
@@ -48,7 +47,7 @@ public class Tree<Content, Position: IntegerPosition2D> {
   // MARK: Internal
   
   /// The tree's root node
-  public internal(set) var rootNode: NodeType
+  public internal(set) var rootNode: Node
   
   // MARK: - Initializer
   
@@ -57,7 +56,7 @@ public class Tree<Content, Position: IntegerPosition2D> {
   /// - Parameter initialOrigin: The tree's initial origin (bottom left corner)
   /// - Parameter initialDepth: The depth of the initial root node (defaults to 0)
   public init(initialOrigin: Position, initialDepth: Depth = 0) {
-    self.rootNode = NodeType(origin: initialOrigin, depth: initialDepth, parent: nil)
+    self.rootNode = Node(origin: initialOrigin, depth: initialDepth, parent: nil)
   }
   
   // MARK: - Accessors
@@ -66,7 +65,7 @@ public class Tree<Content, Position: IntegerPosition2D> {
   ///
   /// - Parameter position: Query position
   /// - Returns: the current leaf node at the query position or nil if the position lies outside the tree's region
-  public func leaf(at position: Position) -> NodeType? {
+  public func leaf(at position: Position) -> Node? {
     guard let node = rootNode.node(at: position, recursive: true) else {
       return nil
     }
@@ -100,15 +99,15 @@ public class Tree<Content, Position: IntegerPosition2D> {
   /// - Precondition: amount >= 0 && self.depth < maxDepth
   /// - Postcondition: self.depth > oldDepth && self.size == 2 * oldSize
   public func grow(inDirection direction: DiagonalDirection) {
-    precondition(depth < Tree<Content, Position>.maxDepth,
+    precondition(depth < Self.maxDepth,
                  "depth must not exceed maxDepth")
     
     let newOrigin = Position.min(rootNode.origin &+
       rootNode.size &* direction.vector,
                                  rootNode.origin)
-    let newNode = NodeType(origin: newOrigin,
-                           depth: rootNode.depth + 1,
-                           parent: nil)
+    let newNode = Node(origin: newOrigin,
+                       depth: rootNode.depth + 1,
+                       parent: nil)
     newNode.subdivide()
     
     newNode.children![direction.newRootPosition] = rootNode
