@@ -1,5 +1,5 @@
 //
-//  DynamicQuadTree.swift
+// Tree.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -25,9 +25,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /// A class representing a dynamic spatial quad tree
-public class DynamicLODTree<Content, Position: IntegerPosition2D> {
-  public typealias NodeType = Node<Content, Position>
-  public typealias Depth = NodeType.Depth
+public class Tree<Content, Position: IntegerPosition2D> {
+  public typealias Depth = UInt8
   public typealias Scalar = Position.Scalar
   
   public enum Direction { case left, right, up, down }
@@ -48,7 +47,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   // MARK: Internal
   
   /// The tree's root node
-  public internal(set) var rootNode: NodeType
+  public internal(set) var rootNode: Node
   
   // MARK: - Initializer
   
@@ -57,7 +56,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   /// - Parameter initialOrigin: The tree's initial origin (bottom left corner)
   /// - Parameter initialDepth: The depth of the initial root node (defaults to 0)
   public init(initialOrigin: Position, initialDepth: Depth = 0) {
-    self.rootNode = NodeType(origin: initialOrigin, depth: initialDepth, parent: nil)
+    self.rootNode = Node(origin: initialOrigin, depth: initialDepth, parent: nil)
   }
   
   // MARK: - Accessors
@@ -66,7 +65,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   ///
   /// - Parameter position: Query position
   /// - Returns: the current leaf node at the query position or nil if the position lies outside the tree's region
-  public func leaf(at position: Position) -> NodeType? {
+  public func leaf(at position: Position) -> Node? {
     guard let node = rootNode.node(at: position, recursive: true) else {
       return nil
     }
@@ -100,15 +99,15 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   /// - Precondition: amount >= 0 && self.depth < maxDepth
   /// - Postcondition: self.depth > oldDepth && self.size == 2 * oldSize
   public func grow(inDirection direction: DiagonalDirection) {
-    precondition(depth < DynamicLODTree<Content, Position>.maxDepth,
+    precondition(depth < Self.maxDepth,
                  "depth must not exceed maxDepth")
     
     let newOrigin = Position.min(rootNode.origin &+
       rootNode.size &* direction.vector,
                                  rootNode.origin)
-    let newNode = NodeType(origin: newOrigin,
-                           depth: rootNode.depth + 1,
-                           parent: nil)
+    let newNode = Node(origin: newOrigin,
+                       depth: rootNode.depth + 1,
+                       parent: nil)
     newNode.subdivide()
     
     newNode.children![direction.newRootPosition] = rootNode
@@ -117,7 +116,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   }
 }
 
-private extension DynamicLODTree.DiagonalDirection {
+private extension Tree.DiagonalDirection {
   var newRootPosition: NormalizedNodePosition {
     switch self {
     case .downLeft: return .topRight

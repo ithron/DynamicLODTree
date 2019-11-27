@@ -1,5 +1,5 @@
 //
-//  DynamicQuadTreeSequenceExtension.swift
+// TreeSequenceExtension.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -24,52 +24,55 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public struct DynamicLODTreeNodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
-  public typealias Element = DynamicLODTree<Content, Position>.NodeType
-  
-  weak var node: Element?
-  var isFirst = true
-  
-  init(node: Element?) {
-    self.node = node
-  }
-  
-  public mutating func next() -> Element? {
-    if isFirst {
-      isFirst = false
-    } else {
-      guard let node = self.node else { return nil }
-      self.node = node.next()
+public extension Tree {
+  struct NodeIterator: IteratorProtocol {
+    public typealias Element = Tree.Node
+    
+    weak var node: Element?
+    var isFirst = true
+    
+    init(node: Element?) {
+      self.node = node
     }
     
-    return node
+    public mutating func next() -> Element? {
+      if isFirst {
+        isFirst = false
+      } else {
+        guard let node = self.node else { return nil }
+        self.node = node.next()
+      }
+      
+      return node
+    }
   }
 }
 
-public struct DynamicLODTreeNodeSequence<Content, Position: IntegerPosition2D>: Sequence {
-  public typealias Iterator = DynamicLODTreeNodeIterator<Content, Position>
-  public typealias Tree = DynamicLODTree<Content, Position>
-  
-  var tree: Tree
-  
-  init(tree: Tree) {
-    self.tree = tree
-  }
-  
-  public func makeIterator() -> Iterator {
-    return Iterator(node: tree.rootNode)
+public extension Tree {
+  struct NodeSequence: Sequence {
+    public typealias Iterator = Tree.NodeIterator
+    
+    var tree: Tree
+    
+    init(tree: Tree) {
+      self.tree = tree
+    }
+    
+    public func makeIterator() -> Iterator {
+      return Iterator(node: tree.rootNode)
+    }
   }
 }
 
-public extension DynamicLODTree {
+public extension Tree {
   /// A sequence over the nodes of the tree
-  var nodes: DynamicLODTreeNodeSequence<Content, Position> {
-    DynamicLODTreeNodeSequence<Content, Position>(tree: self)
+  var nodes: NodeSequence {
+    NodeSequence(tree: self)
   }
   
   /// A sequence over the leafs of the tree
-  var leafs: LazyFilterSequence<DynamicLODTreeNodeSequence<Content, Position>> {
-    DynamicLODTreeNodeSequence<Content, Position>(tree: self).lazy.filter {
+  var leafs: LazyFilterSequence<NodeSequence> {
+    NodeSequence(tree: self).lazy.filter {
       $0.isLeaf
     }
   }

@@ -24,10 +24,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public extension Node {
+public extension Tree.Node {
   /// The neight neighbor node, i.e. the next node with the same or a higher depth or nil
   /// if no such node exists
-  var nextNeighbor: Node<Content, PositionType>? {
+  var nextNeighbor: Tree.Node? {
     guard !isRoot else { return nil }
     
     var parent = self
