@@ -1,5 +1,5 @@
 //
-//  DynamicQuadTree.swift
+// Tree.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -25,7 +25,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /// A class representing a dynamic spatial quad tree
-public class DynamicLODTree<Content, Position: IntegerPosition2D> {
+public class Tree<Content, Position: IntegerPosition2D> {
   public typealias NodeType = Node<Content, Position>
   public typealias Depth = NodeType.Depth
   public typealias Scalar = Position.Scalar
@@ -100,7 +100,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   /// - Precondition: amount >= 0 && self.depth < maxDepth
   /// - Postcondition: self.depth > oldDepth && self.size == 2 * oldSize
   public func grow(inDirection direction: DiagonalDirection) {
-    precondition(depth < DynamicLODTree<Content, Position>.maxDepth,
+    precondition(depth < Tree<Content, Position>.maxDepth,
                  "depth must not exceed maxDepth")
     
     let newOrigin = Position.min(rootNode.origin &+
@@ -117,7 +117,7 @@ public class DynamicLODTree<Content, Position: IntegerPosition2D> {
   }
 }
 
-private extension DynamicLODTree.DiagonalDirection {
+private extension Tree.DiagonalDirection {
   var newRootPosition: NormalizedNodePosition {
     switch self {
     case .downLeft: return .topRight

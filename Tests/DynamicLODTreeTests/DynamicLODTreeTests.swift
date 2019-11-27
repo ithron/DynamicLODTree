@@ -29,7 +29,7 @@ import XCTest
 
 class DynamicLODTreeTests: XCTestCase {
   typealias Position = SIMD2<Int32>
-  typealias Tree = DynamicLODTree<Int, Position>
+  typealias Tree = DynamicLODTree.Tree<Int, Position>
   
   override func setUp() {
     // Put setup code here. This method is called before the invocation of each test method in the class.

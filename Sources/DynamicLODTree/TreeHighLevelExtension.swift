@@ -1,5 +1,5 @@
 //
-//  DynamicQuadTreeHighLevelExtension.swift
+// TreeHighLevelExtension.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -24,7 +24,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public extension DynamicLODTree {
+public extension Tree {
   func grow(inDirectionOf point: Position) {
     let dir = point &- origin
     let direction = DiagonalDirection.from(vector: dir)
@@ -118,8 +118,8 @@ public extension DynamicLODTree {
   }
 }
 
-extension DynamicLODTree.DiagonalDirection {
-  static func from(vector: Position) -> DynamicLODTree.DiagonalDirection {
+extension Tree.DiagonalDirection {
+  static func from(vector: Position) -> Tree.DiagonalDirection {
     switch (vector.x, vector.y) {
     case (..<0, ..<0):
       return .downLeft

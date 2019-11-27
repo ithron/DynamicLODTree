@@ -1,5 +1,5 @@
 //
-//  DynamicQuadTreeSequenceExtension.swift
+// TreeSequenceExtension.swift
 //
 // Copyright (c) 2019, Stefan Reinhold
 // All rights reserved.
@@ -24,8 +24,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-public struct DynamicLODTreeNodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
-  public typealias Element = DynamicLODTree<Content, Position>.NodeType
+public struct TreeNodeIterator<Content, Position: IntegerPosition2D>: IteratorProtocol {
+  public typealias Element = Tree<Content, Position>.NodeType
   
   weak var node: Element?
   var isFirst = true
@@ -46,13 +46,13 @@ public struct DynamicLODTreeNodeIterator<Content, Position: IntegerPosition2D>: 
   }
 }
 
-public struct DynamicLODTreeNodeSequence<Content, Position: IntegerPosition2D>: Sequence {
-  public typealias Iterator = DynamicLODTreeNodeIterator<Content, Position>
-  public typealias Tree = DynamicLODTree<Content, Position>
+public struct TreeNodeSequence<Content, Position: IntegerPosition2D>: Sequence {
+  public typealias Iterator = TreeNodeIterator<Content, Position>
+  public typealias TreeType = Tree<Content, Position>
   
-  var tree: Tree
+  var tree: TreeType
   
-  init(tree: Tree) {
+  init(tree: TreeType) {
     self.tree = tree
   }
   
@@ -61,15 +61,15 @@ public struct DynamicLODTreeNodeSequence<Content, Position: IntegerPosition2D>: 
   }
 }
 
-public extension DynamicLODTree {
+public extension Tree {
   /// A sequence over the nodes of the tree
-  var nodes: DynamicLODTreeNodeSequence<Content, Position> {
-    DynamicLODTreeNodeSequence<Content, Position>(tree: self)
+  var nodes: TreeNodeSequence<Content, Position> {
+    TreeNodeSequence<Content, Position>(tree: self)
   }
   
   /// A sequence over the leafs of the tree
-  var leafs: LazyFilterSequence<DynamicLODTreeNodeSequence<Content, Position>> {
-    DynamicLODTreeNodeSequence<Content, Position>(tree: self).lazy.filter {
+  var leafs: LazyFilterSequence<TreeNodeSequence<Content, Position>> {
+    TreeNodeSequence<Content, Position>(tree: self).lazy.filter {
       $0.isLeaf
     }
   }
